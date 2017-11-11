@@ -1,0 +1,98 @@
+#!/bin/bash -e
+#
+# proxpaas-cli - command-line interface for Proxpaas
+
+###########
+## UTILS ##
+###########
+
+PROXPAAS_BASE_URL=${PROXPAAS_HOST:-http://localhost:4567}/apps
+PROXPAAS_CONFIG_FILE=.proxpaas_config
+PROXPAAS_APP_ARCHIVE_TEMP=.app.zip
+
+usage() {
+    echo "Usage: $(basename $0) [-h] [-c] [-p] [-u]"
+    echo ""
+    echo "  -h  Help. Display this message and quit."
+    echo "  -c  Create the app."
+    echo "  -p  Push the app."
+    echo "  -u  Print the app URL."
+    echo ""
+    exit 1
+}
+
+create_app() {
+  if [ ! -z "$PROXPAAS_APP_ID" ]; then
+    echo "Proxpaas project already initialized in this directory."
+    exit 1
+  else
+    echo "Proxpaas initialization..."
+    echo "PROXPAAS_APP_ID=`curl -sSX POST $PROXPAAS_BASE_URL`" > $PROXPAAS_CONFIG_FILE
+    echo "Proxpaas is setup! Before deploying our team needs to enable your app host."
+    echo "Use proxpaas-cli -p to deploy your app."
+    echo "Use proxpaas-cli -u to print your app URL."
+  fi
+}
+
+push_app() {
+  if [ -z "$PROXPAAS_APP_ID" ]; then
+    echo "Proxpaas project not initialized in this directory. You need to create a new project using `$(basename $0)` -c"
+    exit 1
+  else
+    echo "Deploying app..."
+    zip -qr $PROXPAAS_APP_ARCHIVE_TEMP .
+    curl -sS -F "file=@$PROXPAAS_APP_ARCHIVE_TEMP" $PROXPAAS_BASE_URL/$PROXPAAS_APP_ID/deploy > /dev/null
+    rm -f $PROXPAAS_APP_ARCHIVE_TEMP
+    echo "Your app has been deployed!"
+    get_app_url
+  fi
+}
+
+get_app_url() {
+  if [ -z "$PROXPAAS_APP_ID" ]; then
+    echo "Proxpaas project not initialized in this directory. You need to create a new project using `$(basename $0)` -c"
+    exit 1
+  else
+    echo "Your app is accessible from here: `curl -sS $PROXPAAS_BASE_URL/$PROXPAAS_APP_ID/url`"
+  fi
+}
+
+##########
+## MAIN ##
+##########
+
+# read config if app exists
+[[ -e $PROXPAAS_CONFIG_FILE ]] && source $PROXPAAS_CONFIG_FILE
+
+if [[ $# -eq 0 ]] ; then
+  usage
+fi
+
+while getopts "hcpu" optchar
+do
+    case "${optchar}" in
+        h)
+            usage
+            ;;
+        c)
+            CREATE_APP=1
+            ;;
+        p)
+            PUSH_APP=1
+            ;;
+        u)
+            GET_APP_URL=1
+            ;;
+        *)
+            usage
+            ;;
+    esac
+done
+
+if [ ! -z "$CREATE_APP" ]; then
+  create_app
+elif [ ! -z "$PUSH_APP" ]; then
+  push_app
+elif [ ! -z "$GET_APP_URL" ]; then
+  get_app_url
+fi

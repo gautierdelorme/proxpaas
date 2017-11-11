@@ -1,0 +1,11 @@
+source 'https://rubygems.org'
+
+gem 'sinatra', '~> 2.0'
+gem 'sinatra-activerecord', '~> 2.0'
+gem 'dotenv', '~> 2.2'
+gem 'rake', '~> 12.2'
+gem 'sqlite3', '~> 1.3'
+gem 'rest-client', '~> 2.0'
+gem 'json', '~> 1.8'
+gem 'net-ssh', '~> 4.2'
+gem 'net-scp', '~> 1.2'
