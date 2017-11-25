@@ -29,7 +29,7 @@ class ProxClient
   def create_and_start_ct(uuid)
     "#{proxmox_ct_base_id}#{uuid}".tap do |vmid|
       wait_for_task(create_ct vmid)
-      client.lxc_start vmid
+      wait_for_task(client.lxc_start vmid)
     end
   end
 
@@ -72,8 +72,28 @@ class ProxClient
 
   def setup_ct(ct_ip)
     Net::SSH.start(ct_ip, proxmox_ct_login, password: proxmox_ct_password) do |ssh|
-      ssh.exec! "fuser -k 80/tcp"
+      ssh.exec! 'mkdir -p /var/www'
+      ssh.exec! 'apt-get update'
+      ssh.exec! 'apt-get install unzip curl -y'
+      ssh.exec! 'curl -sL https://deb.nodesource.com/setup_8.x | bash -'
+      ssh.exec! 'apt-get install nodejs -y'
       ssh.exec! 'npm install forever http-server -g'
     end
+  end
+
+  def get_mac_addr(ct_id)
+    client.lxc_config(ct_id)['net0'][/hwaddr=(.*?),ip=/m, 1]
+  end
+
+  def get_ip(ct_id)
+    JSON.parse(RestClient.post(proxmox_dhcp_server_addr, {
+      command: 'lease4-get',
+      arguments: {
+        'identifier-type' => 'hw-address',
+        'identifier': get_mac_addr(ct_id),
+        'subnet-id':1
+      },
+      service:['dhcp4']
+    }.to_json, {content_type: :json})).first.dig('arguments', 'ip-address')
   end
 end

@@ -67,15 +67,14 @@
 ### Technologies
 
 - Web app built in Ruby (using Sinatra to define the API)
-- Both CLI tools are written in pure bash
+- CLI tool written in pure bash
 - SQLite3 was chosen as a simple database
 - Git as versioning system
 
 ### Architecture
 
-- `cli/`: contains two CLI tools
-  - `proxpaas-cli` to create and push an app to the cloud infrastructure (user tool)
-  - `proxpaas-admin-cli` to setup a CT based on its IP address (admin tool)
+- `cli/`: contains the CLI tool
+  - `proxpaas-cli` used to create and push an app to the cloud infrastructure
 - `db/`: contains database related files (schema, migrations...)
 - `lib/`:
   - `prox_client`: Proxpaas client used to manage the cloud infrastructure
@@ -91,7 +90,7 @@
 - You need to have an instance of Proxpaas running
 - To connect to Proxmox you need to set `PROXMOX_LOGIN` and `PROXMOX_PASSWORD` environment variables or edit the `lib/proxmox_config.rb` file.
   - This project supports `.env` configuration strategy (more info: https://github.com/bkeepers/dotenv#usage)
-- CLI tools default Proxpaas host is `http://localhost:4567`. You can set the `PROXPAAS_HOST` environment variable to use another one.
+- CLI tool default Proxpaas host is `http://localhost:4567`. You can set the `PROXPAAS_HOST` environment variable to use another one.
 - You need to add the Proxpaas CLI directory to your PATH: `export PATH=/path/to/proxpaas/cli/:$PATH`
 - You can check if it works with `proxpaas-cli -h`
 
@@ -117,33 +116,22 @@ Go inside and create the `index.html` file inside
 
     proxpaas-cli -c
 
-You should see `Proxpaas initialization...` it means Proxpaas is creating a container in Proxmox to host your app. Once it's done  you should see a `.proxpaas_config` in your project directory and this message in the console:
-
-    Proxpaas is setup! Before deploying our team needs to enable your app host.
-    Use proxpaas-cli -p to deploy your app.
-    Use proxpaas-cli -u to print your app URL.
-
-You cannot deploy your app right away because we still don't know the container's IP address (Proxmox doesn't know about it).
-
-#### [ADMIN ONLY] Go to the Proxmox UI
-
-*Once we have a solution to get programmatically a container IP we can remove this entire part.*
-
-- Open the container console, type `hostname -I` to get the IP address, copy it and close the console.
-- Go back to your local console and use `proxpaas-admin-cli` to setup the Proxpaas application
-  - You need to set the `PROXPAAS_APP_ID` environment variable corresponding to the Proxpaas app you want to setup
-  - To find the corresponding app ID you can use `cat awesome_project/.proxpaas_config`
-
-E.g.
-
-    PROXPAAS_APP_ID=APPID proxpaas-admin-cli -s IPADDRESS
+You should see `Proxpaas initialization...`.
 
 During the setup Proxpaas will
-- Make the port 80 available to your app
-- Download two utilities:
+- Create a container in Proxmox to host your app
+- Install two utilities in the container (and all dependencies like `curl` and `nodejs`):
   - `http-server`: To serve your application
   - `forever`: To keep your application alive
 
+
+Once it's done  you should see a `.proxpaas_config` (used to identify your app) in your project directory and this message in the console:
+
+    Proxpaas is setup!
+    Use proxpaas-cli -p to deploy your app.
+    Use proxpaas-cli -u to print your app URL.
+
+You are now ready to deploy your app.
 
 #### Deploy your project
 
@@ -174,7 +162,7 @@ From your web browser go to the given IP to see your awesome application alive!
 
 In your project directory update your index.html:
 
-    echo "NEW CRAZY V2!!!" >> index.html
+    echo "NEW CRAZY V2" >> index.html
 
 Then deploy your app again
 
@@ -188,7 +176,8 @@ Of course you can create and deploy more complex web applications using HTML/CSS
 
 ## Improvements to do
 
-- Remove manual intervention to setup a Proxpaas application (find the container IP programmatically)
+- ✅ ~~Remove manual intervention to setup a Proxpaas application (find the container IP programmatically)~~ (fixed by [PR#1](https://github.com/gautierdelorme/proxpaas/pull/1))
+- Move from SCP archived project directory to another system for deployment (rsync, git...)
 - Remove downtime during deployment (using side A / side B or other strategies...)
 - Support more technologies (servers, languages, build processes...)
 - Build a UI to manage apps
