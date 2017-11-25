@@ -28,7 +28,7 @@ create_app() {
   else
     echo "Proxpaas initialization..."
     echo "PROXPAAS_APP_ID=`curl -sSX POST $PROXPAAS_BASE_URL`" > $PROXPAAS_CONFIG_FILE
-    echo "Proxpaas is setup! Before deploying our team needs to enable your app host."
+    echo "Proxpaas is setup!"
     echo "Use proxpaas-cli -p to deploy your app."
     echo "Use proxpaas-cli -u to print your app URL."
   fi

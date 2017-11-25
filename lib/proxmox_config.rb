@@ -20,7 +20,7 @@ module ProxmoxConfig
   end
 
   def proxmox_os_template
-    ENV['PROXMOX_OS_TEMPLATE'] || 'template:vztmpl/debian-8-turnkey-nodejs_14.2-1_amd64.tar.gz'
+    ENV['PROXMOX_OS_TEMPLATE'] || 'template:vztmpl/debian-8.0-standard_8.7-1_amd64.tar.gz'
   end
 
   def proxmox_ct_base_id
@@ -61,5 +61,9 @@ module ProxmoxConfig
 
   def proxmox_ct_web_directory
     ENV['PROXMOX_CT_WEB_DIR'] || '/var/www'
+  end
+
+  def proxmox_dhcp_server_addr
+    ENV['PROXMOX_DHCP_SERVER_ADDR'] || 'http://vm-tpgei-dhcp.insa-toulouse.fr/kea'
   end
 end
